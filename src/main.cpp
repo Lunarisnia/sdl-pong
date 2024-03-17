@@ -35,6 +35,12 @@ SDL_Surface *globalKeyPressSurfaces[KEY_PRESS_SURFACE_TOTAL];
 // Current Displayed Image
 SDL_Surface *globalCurrentSurface = NULL;
 
+// Global Renderer
+SDL_Renderer *globalRenderer = NULL;
+
+// Global Texture
+SDL_Texture *globalTexture = NULL;
+
 // Starts up SDL and create a window
 bool init() {
     bool success = true;
@@ -48,22 +54,33 @@ bool init() {
             printf("Window could not be created! SDL_ERROR: %s\n", SDL_GetError());
             success = false;
         } else {
-            // Initialize PNG Loading
-            int imgFlags = IMG_INIT_PNG;
-            // 0000 0010 & 0000 0010
-            if (!(IMG_Init(imgFlags) & imgFlags)) {
-                printf("SDL_Image could not be initialized! SDL_Image Error: %s\n", IMG_GetError());
+            // Create renderer for window
+            globalRenderer = SDL_CreateRenderer(globalWindow, -1, SDL_RENDERER_ACCELERATED);
+            if (globalRenderer == NULL) {
+                printf("Renderer could not be created! SDL_ERROR: %s\n", SDL_GetError());
                 success = false;
             } else {
-                // Get Window surface
-                globalSurface = SDL_GetWindowSurface(globalWindow);
+                // Initialize renderer color
+                SDL_SetRenderDrawColor(globalRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+                // Initialize PNG Loading
+                int imgFlags = IMG_INIT_PNG;
+                // 0000 0010 & 0000 0010
+                if (!(IMG_Init(imgFlags) & imgFlags)) {
+                    printf("SDL_Image could not be initialized! SDL_Image Error: %s\n", IMG_GetError());
+                    success = false;
+                } else {
+                    // Get Window surface
+                    globalSurface = SDL_GetWindowSurface(globalWindow);
+                }
             }
         }
     }
     return success;
 }
 
-SDL_Surface *loadSurface(std::string path) {
+// Load image as surface
+SDL_Surface *loadSurface(const std::string &path) {
     // Place for optimized surface
     SDL_Surface *optimizedSurface = NULL;
 
@@ -83,9 +100,26 @@ SDL_Surface *loadSurface(std::string path) {
     return optimizedSurface;
 }
 
+// Load image as texture
+SDL_Texture *loadTexture(const std::string &path) {
+    SDL_Texture *newTexture = NULL;
+
+    newTexture = IMG_LoadTexture(globalRenderer, path.c_str());
+    if (newTexture == NULL) {
+        printf("Unable to load texture %s\n", IMG_GetError());
+    }
+
+    return newTexture;
+}
+
 // Loads Media
 bool loadMedia() {
     bool success = true;
+
+    globalTexture = loadTexture("../images/texture.png");
+    if (globalTexture == NULL) {
+        success = false;
+    }
 
     lastBastionSurface = loadSurface("../images/ass.bmp");
     if (lastBastionSurface == NULL) {
@@ -132,16 +166,23 @@ bool loadMedia() {
 
 // Frees media and shuts down SDL
 void close() {
+    // Free loaded texture/image
+    SDL_DestroyTexture(globalTexture);
+    globalTexture = NULL;
+
     // Deallocate surface
     SDL_FreeSurface(lastBastionSurface);
     lastBastionSurface = NULL;
 
     // Destroy Window
+    SDL_DestroyRenderer(globalRenderer);
     SDL_DestroyWindow(globalWindow);
     globalWindow = NULL;
+    globalRenderer = NULL;
 
     // Quit SDL Subsystem
     SDL_Quit();
+    IMG_Quit();
 }
 
 
@@ -179,6 +220,8 @@ int main(int argc, char *argv[]) {
                     }
 
                     // User Presses a key
+                    /**
+                     *
                     if (e.type == SDL_KEYDOWN) {
                         // Select surfaces based on key press
                         switch (e.key.keysym.sym) {
@@ -219,6 +262,16 @@ int main(int argc, char *argv[]) {
                         // Update the screen
                         SDL_UpdateWindowSurface(globalWindow);
                     }
+                     */
+
+                    // Clear Screen
+                    SDL_RenderClear(globalRenderer);
+
+                    // Render Texture to the screen
+                    SDL_RenderCopy(globalRenderer, globalTexture, NULL, NULL);
+
+                    // Update the screen
+                    SDL_RenderPresent(globalRenderer);
                 }
             }
             // Hacky way to keep the window from closing
