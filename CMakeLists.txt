@@ -17,16 +17,20 @@ target_include_directories(${PROJECT_NAME} PRIVATE include)
 target_compile_options(${PROJECT_NAME} PRIVATE $<$<C_COMPILER_ID:MSVC>:/W4 /WX>)
 target_compile_options(${PROJECT_NAME} PRIVATE $<$<NOT:$<C_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic -Werror>)
 
+
 # IF WINDOWS SET THIS TO YOUR PATH AND UNCOMMENT THIS
 SET(SDL2_PATH "D:/SDK/SDL2/SDL2-2.30.1/x86_64-w64-mingw32")
+# IF WINDOWS SET THIS TO YOUR PATH AND UNCOMMENT THIS
+SET(SDL2_IMAGE_PATH "D:/SDK/SDL2/SDL2_image-2.8.2/x86_64-w64-mingw32")
 
 # Add SDL2 library
 find_package(SDL2 REQUIRED)
 target_link_libraries(${PROJECT_NAME} SDL2::Main)
 
+
 # Add SDL2_image library
-#find_package(SDL2_image REQUIRED)
-#target_link_libraries(${PROJECT_NAME} SDL2::Image)
+find_package(SDL2_image REQUIRED)
+target_link_libraries(${PROJECT_NAME} SDL2::Image)
 
 # Add SDL2_ttf library
 #find_package(SDL2_ttf REQUIRED)

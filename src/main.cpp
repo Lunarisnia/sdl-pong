@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <SDL.h>
+#include <SDL_image.h>
 
 const int SCREEN_WIDTH = 480;
 const int SCREEN_HEIGHT = 480;
@@ -12,6 +13,7 @@ enum KeyPressSurfaces {
     KEY_PRESS_SURFACE_DOWN,
     KEY_PRESS_SURFACE_LEFT,
     KEY_PRESS_SURFACE_RIGHT,
+    KEY_PRESS_SURFACE_SPACE,
     KEY_PRESS_SURFACE_TOTAL,
 };
 
@@ -46,21 +48,39 @@ bool init() {
             printf("Window could not be created! SDL_ERROR: %s\n", SDL_GetError());
             success = false;
         } else {
-            // Get window Surface
-            globalSurface = SDL_GetWindowSurface(globalWindow);
+            // Initialize PNG Loading
+            int imgFlags = IMG_INIT_PNG;
+            // 0000 0010 & 0000 0010
+            if (!(IMG_Init(imgFlags) & imgFlags)) {
+                printf("SDL_Image could not be initialized! SDL_Image Error: %s\n", IMG_GetError());
+                success = false;
+            } else {
+                // Get Window surface
+                globalSurface = SDL_GetWindowSurface(globalWindow);
+            }
         }
     }
     return success;
 }
 
 SDL_Surface *loadSurface(std::string path) {
-    SDL_Surface *loadedSurface = SDL_LoadBMP(path.c_str());
+    // Place for optimized surface
+    SDL_Surface *optimizedSurface = NULL;
+
+    SDL_Surface *loadedSurface = IMG_Load(path.c_str());
     if (loadedSurface == NULL) {
         printf("Unable to load image! SDL_ERROR: %s\n", SDL_GetError());
-        //TODO: Should Raise Some sort of Error Here
     }
 
-    return loadedSurface;
+    optimizedSurface = SDL_ConvertSurface(loadedSurface, globalSurface->format, 0);
+    if (optimizedSurface == NULL) {
+        printf("Unable to optimize image! SDL_ERROR: %s\n", SDL_GetError());
+    }
+
+    // Free the old loaded Surface
+    SDL_FreeSurface(loadedSurface);
+
+    return optimizedSurface;
 }
 
 // Loads Media
@@ -99,6 +119,11 @@ bool loadMedia() {
 
     globalKeyPressSurfaces[KEY_PRESS_SURFACE_RIGHT] = loadSurface("../images/right.bmp");
     if (globalKeyPressSurfaces[KEY_PRESS_SURFACE_RIGHT] == NULL) {
+        success = false;
+    }
+
+    globalKeyPressSurfaces[KEY_PRESS_SURFACE_SPACE] = loadSurface("../images/stickman.png");
+    if (globalKeyPressSurfaces[KEY_PRESS_SURFACE_SPACE] == NULL) {
         success = false;
     }
 
@@ -173,13 +198,23 @@ int main(int argc, char *argv[]) {
                                 globalCurrentSurface = globalKeyPressSurfaces[KEY_PRESS_SURFACE_RIGHT];
                                 break;
 
+                            case SDLK_SPACE:
+                                globalCurrentSurface = globalKeyPressSurfaces[KEY_PRESS_SURFACE_SPACE];
+                                break;
+
                             default:
                                 globalCurrentSurface = globalKeyPressSurfaces[KEY_PRESS_SURFACE_DEFAULT];
                                 break;
                         }
 
-                        // Render the surface in the back render
-                        SDL_BlitSurface(globalCurrentSurface, NULL, globalSurface, NULL);
+                        SDL_Rect stretchRect;
+                        stretchRect.x = 0;
+                        stretchRect.y = 0;
+                        stretchRect.w = SCREEN_WIDTH;
+                        stretchRect.h = SCREEN_HEIGHT;
+
+                        // Render the surface in the back render also scaling it to the screen size
+                        SDL_BlitScaled(globalCurrentSurface, NULL, globalSurface, &stretchRect);
 
                         // Update the screen
                         SDL_UpdateWindowSurface(globalWindow);
