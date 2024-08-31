@@ -1,6 +1,9 @@
 package core
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"Lunarisnia/sdl-pong/internal/dsu"
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 const (
 	ScreenWidth  = 640
@@ -10,6 +13,10 @@ const (
 type App struct {
 	Window   *sdl.Window
 	Renderer *sdl.Renderer
+
+	MainHooks   []*dsu.Node
+	InputHooks  []*dsu.NodeInput
+	RenderHooks []*dsu.NodeRender
 }
 
 func (a *App) InitSDL() {
@@ -33,5 +40,45 @@ func (a *App) InitSDL() {
 	a.Renderer, err = sdl.CreateRenderer(a.Window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func (a *App) RegisterNode(e interface{}) {
+	if ev, ok := e.(dsu.Node); ok {
+		a.MainHooks = append(a.MainHooks, &ev)
+	}
+	if ev, ok := e.(dsu.NodeInput); ok {
+		a.InputHooks = append(a.InputHooks, &ev)
+	}
+	if ev, ok := e.(dsu.NodeRender); ok {
+		a.RenderHooks = append(a.RenderHooks, &ev)
+	}
+}
+
+func (a *App) Updates() {
+	for _, event := range a.MainHooks {
+		(*event).OnUpdate()
+	}
+}
+
+func (a *App) Starts() {
+	for _, event := range a.MainHooks {
+		(*event).OnStart()
+	}
+}
+
+func (a *App) Inputs(key *sdl.KeyboardEvent) {
+	for _, event := range a.InputHooks {
+		if key.GetType() == sdl.KEYDOWN {
+			(*event).OnKeyDown(key)
+		} else {
+			(*event).OnKeyUp(key)
+		}
+	}
+}
+
+func (a *App) Renders(r *sdl.Renderer) {
+	for _, event := range a.RenderHooks {
+		(*event).OnRender(r)
 	}
 }
