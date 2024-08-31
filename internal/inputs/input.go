@@ -6,12 +6,14 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func HandleInput(callback func()) {
+func HandleInput(quit func()) {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch event.(type) {
 		case *sdl.QuitEvent:
 			fmt.Println("Quit")
-			callback()
+			quit()
+		default:
+			break
 		}
 	}
 }
