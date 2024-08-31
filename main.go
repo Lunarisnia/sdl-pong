@@ -15,21 +15,28 @@ func main() {
 	defer app.Window.Destroy()
 	defer app.Renderer.Destroy()
 
-	player, err := graphics.LoadTexture(app.Renderer, "assets/player.png")
+	playerSprite, err := graphics.LoadTexture(app.Renderer, "assets/player.png")
+	if err != nil {
+		panic(err)
+	}
+	_, _, width, height, err := playerSprite.Query()
 	if err != nil {
 		panic(err)
 	}
 
-	playerPosition := dsu.Vector2i{
-		X: 0,
-		Y: 0,
+	player := dsu.Entity{
+		Position: dsu.Vector2i{
+			X: core.ScreenWidth/2 - width*10.0/2,
+			Y: core.ScreenHeight/2 - height*10.0/2,
+		},
+		Texture: playerSprite,
 	}
 
 	running := true
 	for running {
 		graphics.PrepareScene(app.Renderer)
 
-		graphics.Blit(app.Renderer, player, playerPosition)
+		graphics.Blit(app.Renderer, player.Texture, player.Position, 10.0)
 
 		inputs.HandleInput(func() {
 			running = false
@@ -39,8 +46,8 @@ func main() {
 
 		sdl.Delay(16)
 
-		playerPosition = playerPosition.Add(dsu.Vector2i{X: 1, Y: 1})
-		playerPosition.X %= 500
-		playerPosition.Y %= 500
+		// player.Position = player.Position.Add(dsu.Vector2i{X: 1, Y: 1})
+		// player.Position.X %= 500
+		// player.Position.Y %= 500
 	}
 }

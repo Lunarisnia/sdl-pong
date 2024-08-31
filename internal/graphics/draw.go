@@ -25,7 +25,7 @@ func LoadTexture(r *sdl.Renderer, filename string) (*sdl.Texture, error) {
 	return texture, nil
 }
 
-func Blit(r *sdl.Renderer, texture *sdl.Texture, position dsu.Vector2i) error {
+func Blit(r *sdl.Renderer, texture *sdl.Texture, position dsu.Vector2i, scale float32) error {
 	dest := sdl.Rect{
 		X: position.X,
 		Y: position.Y,
@@ -34,8 +34,8 @@ func Blit(r *sdl.Renderer, texture *sdl.Texture, position dsu.Vector2i) error {
 	if err != nil {
 		return err
 	}
-	dest.W = width
-	dest.H = height
+	dest.W = int32(float32(width) * scale)
+	dest.H = int32(float32(height) * scale)
 
 	err = r.Copy(texture, nil, &dest)
 	if err != nil {

@@ -3,8 +3,8 @@ package core
 import "github.com/veandco/go-sdl2/sdl"
 
 const (
-	screenWidth  = 640
-	screenHeight = 480
+	ScreenWidth  = 640
+	ScreenHeight = 480
 )
 
 type App struct {
@@ -22,8 +22,8 @@ func (a *App) InitSDL() {
 		"main",
 		sdl.WINDOWPOS_CENTERED,
 		sdl.WINDOWPOS_CENTERED,
-		screenWidth,
-		screenHeight,
+		ScreenWidth,
+		ScreenHeight,
 		sdl.WINDOW_SHOWN,
 	)
 	if err != nil {
