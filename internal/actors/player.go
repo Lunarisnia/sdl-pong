@@ -38,9 +38,17 @@ func (p *Player) OnRender(r *sdl.Renderer) {
 
 func (p *Player) OnKeyDown(key *sdl.KeyboardEvent) {
 	fmt.Println("Keydown: ", key.Keysym.Scancode)
-	p.Position = p.Position.Add(dsu.Vector2i{X: 10, Y: 0})
+	switch key.Keysym.Scancode {
+	case sdl.SCANCODE_W:
+		p.Position.Y -= 4
+	case sdl.SCANCODE_A:
+		p.Position.X -= 4
+	case sdl.SCANCODE_D:
+		p.Position.X += 4
+	case sdl.SCANCODE_S:
+		p.Position.Y += 4
+	}
 }
 
 func (p *Player) OnKeyUp(key *sdl.KeyboardEvent) {
-	fmt.Println("KeyUp: ", key.Keysym.Scancode)
 }
